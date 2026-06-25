@@ -25,23 +25,16 @@ const state = {
   unreadMessages: 0,
   meetingStartTime: null,
   timerInterval: null,
-  // TTS
-  ttsEnabled: false,
-  ttsRecording: false,
-  ttsMediaRecorder: null,
-  ttsAudioChunks: [],
-  hasVoiceProfile: false,
-  voiceProfileRecorder: null,
-  voiceProfileChunks: [],
 };
 
 // ─── ICE Config ──────────────────────────────────────────────────────────────
 // TURN sunucusu: simetrik NAT'ın arkasındaki kullanıcılar için şart.
 // Ücretsiz test: coturn (kendi sunucunuz) veya Metered.ca / Twilio gibi sağlayıcılar.
-//TURN_URLS, TURN_USER, TURN_PASS değerlerini kendi sunucunuzla doldurun.
-const TURN_URLS  = 'turn:nexmeet.powerbi.com.tr:3478';
-const TURN_USER  = 'nexmeet';
-const TURN_PASS  = 'nexmeet123';
+// TURN_URLS, TURN_USER, TURN_PASS değerlerini kendi sunucunuzla doldurun.
+const TURN_URLS  = '';   // örn: 'turn:sizin-sunucu.com:3478'
+const TURN_USER  = '';
+const TURN_PASS  = '';
+
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
@@ -284,12 +277,6 @@ async function handleSignal(msg) {
       // The new peer will initiate offers to us
       if (!state.peers[from]) {
         await createPeerConnection(from, from_name, false);
-      }
-      break;
-    }
-    case 'tts-audio': {
-      if (msg.audio_base64) {
-        await playTTSAudio(msg.audio_base64);
       }
       break;
     }
@@ -1365,201 +1352,4 @@ function denyControlRequest() {
   });
 
   pendingControlSession = null;
-}
-
-// ─── TTS Pipeline ─────────────────────────────────────────────────────────────
-
-async function checkVoiceProfile() {
-  try {
-    const res = await fetch(`/api/tts/voice-profile/status?token=${state.joinToken}`);
-    const data = await res.json();
-    state.hasVoiceProfile = data.exists;
-    return data.exists;
-  } catch (e) {
-    console.error('Voice profile check error:', e);
-    return false;
-  }
-}
-
-async function startVoiceProfileRecording() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    state.voiceProfileChunks = [];
-    state.voiceProfileRecorder = new MediaRecorder(stream);
-
-    state.voiceProfileRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) state.voiceProfileChunks.push(e.data);
-    };
-
-    state.voiceProfileRecorder.onstop = async () => {
-      const blob = new Blob(state.voiceProfileChunks, { type: 'audio/wav' });
-      await uploadVoiceProfile(blob);
-      stream.getTracks().forEach(t => t.stop());
-    };
-
-    state.voiceProfileRecorder.start();
-    showToast('🎙️ Ses profili kaydediliyor... 30 saniye konuşun');
-
-    // 30 saniye sonra otomatik durdur
-    setTimeout(() => {
-      if (state.voiceProfileRecorder && state.voiceProfileRecorder.state === 'recording') {
-        state.voiceProfileRecorder.stop();
-      }
-    }, 30000);
-
-  } catch (e) {
-    console.error('Voice profile recording error:', e);
-    showToast('Mikrofon erişimi sağlanamadı');
-  }
-}
-
-async function uploadVoiceProfile(blob) {
-  try {
-    showToast('⏳ Ses profili işleniyor...');
-    const arrayBuffer = await blob.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    let binary = '';
-    const chunkSize = 8192;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-    }
-    const base64 = btoa(binary);
-
-    const res = await fetch('/api/tts/voice-profile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: state.joinToken,
-        audio_base64: base64,
-      }),
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      state.hasVoiceProfile = true;
-      showToast('✅ Ses profili kaydedildi!');
-    }
-  } catch (e) {
-    console.error('Voice profile upload error:', e);
-    showToast('Ses profili yüklenemedi');
-  }
-}
-
-function toggleTTS() {
-  state.ttsEnabled = !state.ttsEnabled;
-  const btn = document.getElementById('ttsBtn');
-  if (btn) {
-    btn.classList.toggle('active', state.ttsEnabled);
-    btn.title = state.ttsEnabled ? 'Çeviriyi Kapat' : 'Çeviriyi Aç';
-  }
-
-  if (state.ttsEnabled) {
-    showToast('🌐 Anlık çeviri açıldı');
-    startTTSCapture();
-  } else {
-    showToast('Çeviri kapatıldı');
-    stopTTSCapture();
-  }
-}
-
-function startTTSCapture() {
-  if (!state.localStream) return;
-  state.ttsAudioChunks = [];
-
-  try {
-    state.ttsMediaRecorder = new MediaRecorder(state.localStream);
-
-    state.ttsMediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) state.ttsAudioChunks.push(e.data);
-    };
-
-    state.ttsMediaRecorder.onstop = async () => {
-      if (state.ttsAudioChunks.length > 0 && state.ttsEnabled) {
-        const blob = new Blob(state.ttsAudioChunks, { type: 'audio/wav' });
-        await processTTSChunk(blob);
-        state.ttsAudioChunks = [];
-      }
-      // Devam et
-      if (state.ttsEnabled && state.ttsMediaRecorder) {
-        state.ttsMediaRecorder.start();
-        setTimeout(() => {
-          if (state.ttsMediaRecorder && state.ttsMediaRecorder.state === 'recording') {
-            state.ttsMediaRecorder.stop();
-          }
-        }, 3000);
-      }
-    };
-
-    state.ttsMediaRecorder.start();
-    setTimeout(() => {
-      if (state.ttsMediaRecorder && state.ttsMediaRecorder.state === 'recording') {
-        state.ttsMediaRecorder.stop();
-      }
-    }, 3000);
-
-  } catch (e) {
-    console.error('TTS capture error:', e);
-  }
-}
-
-function stopTTSCapture() {
-  if (state.ttsMediaRecorder && state.ttsMediaRecorder.state !== 'inactive') {
-    state.ttsMediaRecorder.stop();
-  }
-  state.ttsMediaRecorder = null;
-  state.ttsAudioChunks = [];
-}
-
-async function processTTSChunk(blob) {
-  try {
-    const arrayBuffer = await blob.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    let binary = '';
-    const chunkSize = 8192;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-    }
-    const base64 = btoa(binary);
-
-    const res = await fetch('/api/tts/synthesize', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        token: state.joinToken,
-        audio_base64: base64,
-        source_lang: 'tr',
-        target_lang: 'en',
-        session_id: state.roomId,
-      }),
-    });
-
-    const data = await res.json();
-    if (data.audio_base64) {
-      // Sesi çal ve diğer kullanıcılara gönder
-      await playTTSAudio(data.audio_base64);
-      // WebSocket ile diğer kullanıcılara bildir
-      sendSignal({
-        type: 'tts-audio',
-        audio_base64: data.audio_base64,
-        from_name: state.userName,
-      });
-    }
-  } catch (e) {
-    console.error('TTS process error:', e);
-  }
-}
-
-async function playTTSAudio(base64Audio) {
-  try {
-    const binary = atob(base64Audio);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    const blob = new Blob([bytes], { type: 'audio/wav' });
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    await audio.play();
-    audio.onended = () => URL.revokeObjectURL(url);
-  } catch (e) {
-    console.error('TTS audio play error:', e);
-  }
 }
