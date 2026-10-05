@@ -1,84 +1,24 @@
-# architect.md — 🎥 NexMeet — Gerçek Zamanlı Video Konferans Mimari Referansı
+# architect.md — NexMeet v2 Mimarisi
 
-Bu dosya projenin yapısının hızlı-referans özetidir. Kod değiştikçe güncel tutun.
-
-## Genel Bakış
-
-WebRTC tabanlı, **ses klonlamalı anlık çeviri**, **uzak masaüstü kontrolü** ve **dosya paylaşımı** özelliklerine sahip modern video konferans platformu. 🌐 **Canlı Demo:** [nexmeet.powerbi.com.tr](https://nexmeet.powerbi.com.tr)
-
-## Teknoloji Yığını
-
-- FastAPI
-- Uvicorn
-- Docker / docker compose
-- Bash betikleri
-
-## Dizin Yapısı
+> Güncel mimari: `/root/nexmeet/architect.md` (v3).
 
 ```
-.env.example
-.gitignore
-README.md
-agent/
-  agent.py
-  linux_agent.sh
-  requirements.txt
-  run_agent.bat
-  run_agent.sh
-  windows_agent.bat
-backend/
-  __init__.py
-  app.js
-  main.py
-  requirements.txt
-  tts/
-docker/
-  Dockerfile
-  backend/
-  docker-compose.yml
-frontend/
-  index.html
-scripts/
-  start.bat
-  start.sh
-start.bat
-uploads/
-  2451bf69-0332-41c3-839d-3f2e3cffe9a7_12_03_2026_en.pdf
-  6ba37304-ffec-423f-a724-1e85c99dfe54_image.jpg
+Tarayıcı (frontend/index.html + static/js/app.js) ──WS sinyalizasyon──► FastAPI backend/main.py ──► uploads/
+        └──────────── WebRTC P2P medya ────────────┘                      └─ WS ajan / kontrol oturumları
+Uzak PC: agent/agent.py ──WS /ws/agent/{id}──► backend
 ```
 
-## Modüller / Kaynak Dosyalar
+## Uç Noktalar
 
-- `agent/agent.py` — NexMeet Uzak Kontrol Ajanı
-- `agent/linux_agent.sh`
-- `agent/run_agent.sh`
-- `backend/app.js`
-- `backend/main.py`
-- `scripts/start.sh` — NexMeet Başlatma Scripti (Linux/macOS)
-- `backend/tts/chunker.py`
-- `backend/tts/engine.py`
-- `backend/tts/queue.py`
-- `docker/backend/main.py`
+v1 uç noktaları + `/api/join-token`, `/api/tts/synthesize`, `/api/tts/voice-profile[/status]`
 
-## Giriş Noktaları ve Yapılandırma
+## Dosyalar
 
-- `agent/requirements.txt`
-- `backend/main.py`
-- `backend/requirements.txt`
-- `docker/Dockerfile`
-- `docker/backend/main.py`
-- `docker/backend/requirements.txt`
-- `docker/docker-compose.yml`
-- `frontend/index.html`
+- `backend/main.py` — tüm API + WebSocket, durum bellekte.
+- `frontend/` — tek sayfa arayüz.
+- `agent/` — uzak kontrol ajanı (`agent.py`, başlatıcılar).
+- `docker/` — Dockerfile + compose; `scripts/start.*` — yerel başlatma.
 
-## Dağıtım / Çalışma Ortamı
+## Sürüm Zinciri
 
-- GitHub: https://github.com/SHapeloglu/nexmeet_v2
-
-## Diğer Dokümanlar
-
-- `README.md`
-
-## Mimari Kararlar
-
-_Önemli tasarım kararlarını ve gerekçelerini buraya ekleyin (ör. "X yerine Y seçildi çünkü ...")._
+v1 (temel konferans + uzak kontrol) → v2 (token, .env, TTS proxy, GPU TTS servisi) → v3 (canlı; Kokoro CPU TTS, ajan token doğrulama, dosya TTL).

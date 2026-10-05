@@ -1,29 +1,10 @@
-# task.md — 🎥 NexMeet — Gerçek Zamanlı Video Konferans Görev Takibi
-
-Bu dosya projedeki güncel görevleri takip etmek için kullanılır. Yeni bir göreve başlarken "Devam Eden"e taşı, bitirince "Tamamlanan"a taşı ve tarih ekle.
+# task.md — NexMeet v2 Görevleri
 
 ## 🔜 Sıradaki
 
-- [ ] `CLAUDE.md` / `architect.md` içeriğini doğrula ve eksikleri tamamla
-- [ ] Otomatik test bulunamadı — kritik akışlar için en azından duman (smoke) testleri eklenmeli.
-
-> Uzun vadeli / önceliklendirilmemiş fikirler için bkz. `backlog.md`.
-
-## 🚧 Devam Eden
-
-_(şu anda boş)_
+- [ ] Repo için karar (kullanıcı): GitHub'da arşivle ve README'ye v3 bağlantısı ekle
+- [ ] Public repodan izlenen `uploads/` dosyalarını ve `__pycache__`'i çıkar
 
 ## ✅ Tamamlanan
 
-- [x] 2026-10-05 — Proje çalışma dosyaları oluşturuldu
-
----
-
-### Görev Ekleme Şablonu
-
-```markdown
-- [ ] Kısa görev başlığı
-  - Bağlam: neden yapılıyor
-  - Kabul kriteri: ne zaman "bitti" sayılır
-  - İlgili dosyalar: ...
-```
+- [x] 2026-10-05 — Çalışma dosyaları kod okunarak yeniden yazıldı

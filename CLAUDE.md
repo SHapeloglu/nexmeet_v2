@@ -1,53 +1,21 @@
-# CLAUDE.md
+# CLAUDE.md — NexMeet v2 (arşiv sürümü)
 
-Bu dosya, bu proje üzerinde çalışırken Claude'un (Claude Code dahil) izlemesi gereken bağlamı ve kuralları içerir.
+İkinci sürüm (2026-06-25): v1 + **join token** (1 saat), `.env` yapılandırması, MIME doğrulamalı yükleme, **TTS proxy** (`/api/tts/*`) ile ses klonlamalı TR→EN çeviri tasarımı (GPU EC2 üzerinde `nexmeet_v2-kokoro-tts-service`), Linux/Windows ajan başlatıcıları.
 
-## Proje
+- GitHub: https://github.com/SHapeloglu/nexmeet_v2 — **PUBLIC repo**
+- **Güncel/canlı sürüm: `/root/nexmeet` (repo `nexmeet_v3`)** — yeni geliştirme orada yapılır. Bu repo tarihsel referans.
+- Mimari: `architect.md` · Görevler: `task.md` · Fikirler: `backlog.md` · Günlük: `session.md`
 
-**🎥 NexMeet — Gerçek Zamanlı Video Konferans** — WebRTC tabanlı, **ses klonlamalı anlık çeviri**, **uzak masaüstü kontrolü** ve **dosya paylaşımı** özelliklerine sahip modern video konferans platformu. 🌐 **Canlı Demo:** [nexmeet.powerbi.com.tr](https://nexmeet.powerbi.com.tr)
-
-- GitHub: https://github.com/SHapeloglu/nexmeet_v2
-
-## Teknoloji Yığını
-
-- FastAPI
-- Uvicorn
-- Docker / docker compose
-- Bash betikleri
-
-## Önemli Dosyalar
-
-- `agent/requirements.txt`
-- `backend/main.py`
-- `backend/requirements.txt`
-- `docker/Dockerfile`
-- `docker/backend/main.py`
-- `docker/backend/requirements.txt`
-- `docker/docker-compose.yml`
-- `frontend/index.html`
-
-Mimari ayrıntılar için bkz. `architect.md`.
-
-## Sık Kullanılan Komutlar
+## Çalıştırma (yerel deneme)
 
 ```bash
-docker compose up -d --build
-docker compose logs -f
+./scripts/start.sh          # Windows: scripts\start.bat — venv + pip + uvicorn
+# veya: cd backend && pip install -r requirements.txt && uvicorn main:app --reload --port 8000
 ```
 
 ## Kurallar
 
-- Yapılandırmayı ortam değişkenlerinden oku; endpoint şemalarını Pydantic modelleriyle tanımla.
-- Bloklayan I/O işlemlerini async endpoint içinde doğrudan çağırma.
-- `.env`, parola, token ve API anahtarlarını asla commit etme.
-- Her çalışma oturumunun sonunda `session.md`ye kısa kayıt düş; görev durumunu `task.md`de güncelle.
-- Önceliklendirilmemiş fikirleri `backlog.md`ye yaz; somutlaşınca `task.md`ye taşı.
-
-## Çalışma Dosyaları
-
-| Dosya | Amaç |
-|---|---|
-| `architect.md` | Mimari ve dizin yapısı referansı |
-| `task.md` | Aktif / devam eden / tamamlanan görevler |
-| `backlog.md` | Önceliklendirilmemiş fikir ve teknik borç havuzu |
-| `session.md` | Oturum günlüğü — her oturum sonunda güncellenir |
+- Bu repoda değişiklik yapmadan önce kullanıcıya sor; düzeltmeler normalde v3'e gider.
+- `uploads/` içinde 2 kullanıcı dosyası ve `backend/__pycache__` izleniyor (.gitignore içinde olmalarına rağmen).
+- README EC2 IP adreslerini içeriyor (public repo).
+- Public repo: kullanıcı dosyası, IP, anahtar commit etme.
