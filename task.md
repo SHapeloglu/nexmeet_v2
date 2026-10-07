@@ -1,5 +1,7 @@
 # task.md — NexMeet v2 Görevleri
 
+> 🗄️ 2026-10-07: repo arşivlendi — güncel görevler v3 reposunda.
+
 ## 🔜 Sıradaki
 
 - [ ] Repo için karar (kullanıcı): GitHub'da arşivle ve README'ye v3 bağlantısı ekle

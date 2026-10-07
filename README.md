@@ -1,5 +1,7 @@
 # 🎥 NexMeet — Gerçek Zamanlı Video Konferans
 
+> 🗄️ **ARŞİV (2026-10-07):** Bu sürüm artık geliştirilmiyor. Güncel sürüm: **[SHapeloglu/nexmeet_v3](https://github.com/SHapeloglu/nexmeet_v3)** (canlı: nexmeet.powerbi.com.tr).
+
 WebRTC tabanlı, **ses klonlamalı anlık çeviri**, **uzak masaüstü kontrolü** ve **dosya paylaşımı** özelliklerine sahip modern video konferans platformu.
 
 > 🌐 **Canlı Demo:** [nexmeet.powerbi.com.tr](https://nexmeet.powerbi.com.tr)
